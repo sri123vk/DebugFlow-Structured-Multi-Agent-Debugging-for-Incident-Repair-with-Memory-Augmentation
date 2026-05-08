@@ -1,0 +1,35 @@
+[
+  {
+    "entry_id": "20260507160200202235",
+    "incident_id": "INC-BQ-002",
+    "agent": "context_builder",
+    "content": "Context built for INC-BQ-002. Archival hits: 1. RAG chunks: 5. Graph: callers=['verifier.py', 'tests/test_bq_cost_query.py'], tests=['tests/test_bq_cost_query.py']. Initial hypothesis: Based on past incident 'BigQuery full table scan \u2014 missing partition filter on order_date': build_order_query accepts st",
+    "tags": [
+      "context_built",
+      "initial"
+    ],
+    "timestamp": "2026-05-07T16:02:00.202228"
+  },
+  {
+    "entry_id": "20260508165826295698",
+    "incident_id": "INC-BQ-002",
+    "agent": "context_builder",
+    "content": "Context built for INC-BQ-002. Archival hits: 1. RAG chunks: 5. Graph: callers=['verifier.py', 'tests/test_bq_cost_query.py'], tests=['tests/test_bq_cost_query.py']. Initial hypothesis: Based on past incident 'BigQuery full table scan \u2014 missing partition filter on order_date': build_order_query accepts st",
+    "tags": [
+      "context_built",
+      "initial"
+    ],
+    "timestamp": "2026-05-08T16:58:26.295693"
+  },
+  {
+    "entry_id": "20260508170155114075",
+    "incident_id": "INC-BQ-002",
+    "agent": "context_builder",
+    "content": "Context built for INC-BQ-002. Archival hits: 1. RAG chunks: 5. Graph: callers=['verifier.py', 'tests/test_bq_cost_query.py'], tests=['tests/test_bq_cost_query.py']. Initial hypothesis: Based on past incident 'BigQuery full table scan \u2014 missing partition filter on order_date': build_order_query accepts st",
+    "tags": [
+      "context_built",
+      "initial"
+    ],
+    "timestamp": "2026-05-08T17:01:55.114069"
+  }
+]

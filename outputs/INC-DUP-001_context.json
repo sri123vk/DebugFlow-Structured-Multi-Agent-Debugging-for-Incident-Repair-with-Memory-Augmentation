@@ -1,0 +1,286 @@
+{
+  "incident_id": "INC-DUP-001",
+  "incident": {
+    "incident_id": "INC-DUP-001",
+    "title": "Duplicate event pipeline silently dropping valid retries",
+    "severity": "P1",
+    "service": "EventPipeline",
+    "error_class": "SilentDataLoss",
+    "source": "datadog",
+    "timestamp": "2024-03-15T03:14:00Z",
+    "stack_trace": "WARNING: Event evt-002 dropped as duplicate\n  at duplicate_event_pipeline.process_events (line 38)\n  Retry event silently discarded \u2014 original may not have been committed",
+    "symptoms": [
+      "retry events being dropped",
+      "duplicate event pipeline",
+      "silent data loss",
+      "event deduplication",
+      "process_events"
+    ],
+    "affected_file": "bugs/duplicate_event_pipeline.py",
+    "affected_function": "process_events",
+    "domain_constraint_ids": [
+      "no_drop_valid_repeated_events"
+    ],
+    "metrics": {
+      "events_dropped_per_hour": 142,
+      "estimated_data_loss_pct": 8.3
+    }
+  },
+  "working_context": {
+    "incident_id": "INC-DUP-001",
+    "incident_title": "Duplicate event pipeline silently dropping valid retries",
+    "severity": "P1",
+    "active_hypothesis": {
+      "description": "Based on past incident 'Event pipeline dropping retry deliveries silently': process_events uses a plain set() for deduplication keyed only on event_id. Retry deliveries (retry=True) with the same event_id are silently dropped even when the original was never committed.",
+      "confidence": 0.64,
+      "status": "active",
+      "evidence_for": [
+        "Archival match: arc-dup-001 (score=0.71)",
+        "Same error class: SilentDataLoss"
+      ],
+      "ruled_out_reason": null,
+      "created_at": "2026-05-08T17:01:47.793710"
+    },
+    "files_under_inspection": [],
+    "has_patch": false,
+    "patch_preview": null,
+    "test_results": null,
+    "next_action": "triage",
+    "hypothesis_trail": [
+      {
+        "description": "Based on past incident 'Event pipeline dropping retry deliveries silently': process_events uses a plain set() for deduplication keyed only on event_id. Retry deliveries (retry=True) with the same event_id are silently dropped even when the original was never committed.",
+        "confidence": 0.64,
+        "status": "active",
+        "evidence_for": [
+          "Archival match: arc-dup-001 (score=0.71)",
+          "Same error class: SilentDataLoss"
+        ],
+        "ruled_out_reason": null,
+        "created_at": "2026-05-08T17:01:47.793710"
+      }
+    ],
+    "ruled_out_count": 0,
+    "turn_count": 0,
+    "token_estimate": 0
+  },
+  "recall_hits": [
+    {
+      "entry_id": "20260507160200101755",
+      "incident_id": "INC-DUP-001",
+      "agent": "context_builder",
+      "content": "Context built for INC-DUP-001. Archival hits: 1. RAG chunks: 5. Graph: callers=['verifier.py', 'tests/test_duplicate_pipeline.py'], tests=['tests/test_duplicate_pipeline.py']. Initial hypothesis: Based on past incident 'Event pipeline dropping retry deliveries silently': process_events uses a plain set() for dedupl",
+      "tags": [
+        "context_built",
+        "initial"
+      ],
+      "timestamp": "2026-05-07T16:02:00.101748",
+      "score": 0.286
+    },
+    {
+      "entry_id": "20260508165526379956",
+      "incident_id": "INC-DUP-001",
+      "agent": "context_builder",
+      "content": "Context built for INC-DUP-001. Archival hits: 1. RAG chunks: 5. Graph: callers=['verifier.py', 'tests/test_duplicate_pipeline.py'], tests=['tests/test_duplicate_pipeline.py']. Initial hypothesis: Based on past incident 'Event pipeline dropping retry deliveries silently': process_events uses a plain set() for dedupl",
+      "tags": [
+        "context_built",
+        "initial"
+      ],
+      "timestamp": "2026-05-08T16:55:26.379948",
+      "score": 0.286
+    }
+  ],
+  "archival_hits": [
+    {
+      "record_id": "arc-dup-001",
+      "record_type": "incident",
+      "title": "Event pipeline dropping retry deliveries silently",
+      "symptoms": [
+        "silent data loss",
+        "event dropped",
+        "retry",
+        "duplicate",
+        "process_events",
+        "deduplication",
+        "set seen_ids"
+      ],
+      "root_cause": "process_events uses a plain set() for deduplication keyed only on event_id. Retry deliveries (retry=True) with the same event_id are silently dropped even when the original was never committed.",
+      "fix_pattern": "Check the retry flag before deduplicating. Only drop an event if it has no retry flag AND its event_id is already in committed_ids. Use: if event.event_id in committed_ids and not event.retry",
+      "files_changed": [
+        "bugs/duplicate_event_pipeline.py"
+      ],
+      "patch_diff": null,
+      "tests_passed": [
+        "test_retry_of_uncommitted_is_processed",
+        "test_mixed_stream",
+        "test_true_duplicate_is_dropped"
+      ],
+      "confidence": 0.97,
+      "incident_id": "INC-DUP-PREV-001",
+      "version": 1,
+      "deprecated_by": null,
+      "created_at": "2026-05-07T16:02:00.004645",
+      "score": 0.714
+    }
+  ],
+  "patch_patterns": [
+    {
+      "record_id": "arc-dup-002",
+      "record_type": "patch_pattern",
+      "title": "Retry-aware event deduplication pattern",
+      "symptoms": [
+        "retry",
+        "duplicate",
+        "event_id",
+        "dedup",
+        "set"
+      ],
+      "root_cause": "Using set() keyed on event_id alone conflates true duplicates with retries of uncommitted events.",
+      "fix_pattern": "\n# Before (broken):\nseen_ids: set[str] = set()\nif event.event_id in seen_ids:\n    result.dropped.append(event)  # drops valid retries too\n\n# After (fixed):\ncommitted_ids: set[str] = set()\nif event.event_id in committed_ids and not event.retry:\n    result.dropped.append(event)  # only drops true duplicates\nelse:\n    result.processed.append(event)\n    committed_ids.add(event.event_id)\n",
+      "files_changed": [],
+      "patch_diff": null,
+      "tests_passed": [],
+      "confidence": 0.99,
+      "incident_id": null,
+      "version": 1,
+      "deprecated_by": null,
+      "created_at": "2026-05-07T16:02:00.004871",
+      "score": 0.429
+    }
+  ],
+  "file_history": [
+    {
+      "record_id": "arc-dup-001",
+      "record_type": "incident",
+      "title": "Event pipeline dropping retry deliveries silently",
+      "symptoms": [
+        "silent data loss",
+        "event dropped",
+        "retry",
+        "duplicate",
+        "process_events",
+        "deduplication",
+        "set seen_ids"
+      ],
+      "root_cause": "process_events uses a plain set() for deduplication keyed only on event_id. Retry deliveries (retry=True) with the same event_id are silently dropped even when the original was never committed.",
+      "fix_pattern": "Check the retry flag before deduplicating. Only drop an event if it has no retry flag AND its event_id is already in committed_ids. Use: if event.event_id in committed_ids and not event.retry",
+      "files_changed": [
+        "bugs/duplicate_event_pipeline.py"
+      ],
+      "patch_diff": null,
+      "tests_passed": [
+        "test_retry_of_uncommitted_is_processed",
+        "test_mixed_stream",
+        "test_true_duplicate_is_dropped"
+      ],
+      "confidence": 0.97,
+      "incident_id": "INC-DUP-PREV-001",
+      "version": 1,
+      "deprecated_by": null,
+      "created_at": "2026-05-07T16:02:00.004645"
+    }
+  ],
+  "code_graph": {
+    "error_site": "process_events",
+    "error_file": "bugs/duplicate_event_pipeline.py",
+    "own_functions": [
+      "process_events"
+    ],
+    "callers": [
+      "verifier.py",
+      "tests/test_duplicate_pipeline.py"
+    ],
+    "callees": [
+      "PipelineResult",
+      "append",
+      "add",
+      "set",
+      "field"
+    ],
+    "covering_tests": [
+      "tests/test_duplicate_pipeline.py"
+    ],
+    "imports": [
+      "dataclasses.dataclass",
+      "dataclasses.field",
+      "Any",
+      "__future__.annotations",
+      "typing.Any",
+      "annotations",
+      "field",
+      "dataclass"
+    ],
+    "neighbour_files": [
+      "bugs/duplicate_event_pipeline_fixed.py",
+      "context/recall_storage.py",
+      "context/archival_storage.py",
+      "context/working_context.py",
+      "verifier.py"
+    ],
+    "change_hints": [
+      "commit b72d: changed dedup logic to plain set() (1d ago)"
+    ],
+    "error_function_source": "def process_events(events: list[Event]) -> PipelineResult:\n    \"\"\"\n    Process a stream of events, deduplicating by event_id.\n\n    BUG: a plain set deduplicates by event_id alone.\n    Retry events (same event_id, retry=True) are silently dropped\n    even though they should be processed \u2014 the original may not\n    have been committed.\n    \"\"\"\n    result   = PipelineResult()\n    seen_ids: set[str] = set()          # BUG: too aggressive \u2014 drops retries\n\n    for event in events:\n        if event.event_id in seen_ids:\n            result.dropped.append(event)  # silently drops valid retries\n        else:\n            seen_ids.add(event.event_id)\n            result.processed.append(event)\n\n    return result"
+  },
+  "graph_summary": {
+    "total_files": 14,
+    "total_functions": 86,
+    "total_call_edges": 242,
+    "test_files": 2
+  },
+  "rag_chunks": [
+    {
+      "file": "tests/test_duplicate_pipeline.py",
+      "function": "test_normal_dedup_passes_in_buggy",
+      "code": "    def test_normal_dedup_passes_in_buggy(self):\n        \"\"\"True duplicate should be dropped \u2014 buggy version gets this right.\"\"\"\n        from bugs.duplicate_event_pipeline import process_events, Event\n\n        events = [\n            Event(\"evt-001\", {\"amount\": 100}),\n            Event(\"evt-001\", {\"amount\": 100}),   # true duplicate\n        ]\n        result = process_events(events)\n        assert len(result.processed) == 1\n        assert len(result.dropped)   == 1",
+      "score": 1.2274
+    },
+    {
+      "file": "tests/test_duplicate_pipeline.py",
+      "function": "test_true_duplicate_is_dropped",
+      "code": "    def test_true_duplicate_is_dropped(self):\n        \"\"\"True duplicate (no retry flag) must still be deduplicated.\"\"\"\n        from bugs.duplicate_event_pipeline_fixed import process_events, Event\n\n        events = [\n            Event(\"evt-001\", {\"amount\": 100}),\n            Event(\"evt-001\", {\"amount\": 100}),\n        ]\n        result = process_events(events)\n        assert len(result.processed) == 1\n        assert len(result.dropped)   == 1",
+      "score": 1.198
+    },
+    {
+      "file": "tests/test_duplicate_pipeline.py",
+      "function": "test_retry_of_uncommitted_is_processed",
+      "code": "    def test_retry_of_uncommitted_is_processed(self):\n        \"\"\"\n        Domain constraint: do not drop valid repeated events.\n        A retry must be processed, not silently dropped.\n        \"\"\"\n        from bugs.duplicate_event_pipeline_fixed import process_events, Event\n\n        events = [\n            Event(\"evt-002\", {\"amount\": 50}, retry=False),\n            Event(\"evt-002\", {\"amount\": 50}, retry=True),   # retry \u2014 keep it\n        ]\n        result = process_events(events)\n        assert len(result.processed) == 2, (\n            \"Retry of uncommitted event must be processed \u2014 \"\n            \"domain constraint: do not drop valid repeated events\"\n        )\n        assert len(result.dropped) == 0",
+      "score": 1.1867
+    },
+    {
+      "file": "bugs/duplicate_event_pipeline_fixed.py",
+      "function": "process_events",
+      "code": "def process_events(events: list[Event]) -> PipelineResult:\n    \"\"\"\n    Process events with correct retry semantics.\n\n    FIX: distinguish retries from true duplicates using the retry flag.\n    - retry=False + seen before \u2192 true duplicate \u2192 drop\n    - retry=True  + seen before \u2192 valid re-delivery \u2192 process it\n    - not seen before           \u2192 first delivery   \u2192 process it\n    \"\"\"\n    result        = PipelineResult()\n    committed_ids: set[str] = set()\n\n    for event in events:\n        if event.event_id in committed_ids and not event.retry:\n            # True duplicate (no retry flag) \u2014 safe to drop\n            result.dropped.append(event)\n        else:\n            # First delivery OR explicit retry \u2014 process it\n            result.processed.append(event)\n            committed_ids.add(event.event_id)\n\n    return result",
+      "score": 1.1374
+    },
+    {
+      "file": "tests/test_duplicate_pipeline.py",
+      "function": "test_mixed_stream",
+      "code": "    def test_mixed_stream(self):\n        \"\"\"Mixed stream: some true duplicates, some retries.\"\"\"\n        from bugs.duplicate_event_pipeline_fixed import process_events, Event\n\n        events = [\n            Event(\"evt-A\", {\"val\": 1}),                      # first delivery\n            Event(\"evt-B\", {\"val\": 2}),                      # first delivery\n            Event(\"evt-A\", {\"val\": 1}, retry=True),          # retry of A\n            Event(\"evt-B\", {\"val\": 2}),                      # true duplicate of B\n            Event(\"evt-C\", {\"val\": 3}),                      # new event\n        ]\n        result = process_events(events)\n        # evt-A: processed (first) + processed (retry) = 2\n        # evt-B: processed (first) + dropped (true dup) = 1 processed + 1 dropped\n        # evt-C: processed = 1\n        assert len(result.processed) == 4\n        assert len(result.dropped)   == 1",
+      "score": 1.078
+    }
+  ],
+  "domain_constraints": [
+    {
+      "constraint_id": "no_drop_valid_repeated_events",
+      "description": "Do not drop valid repeated events. A retry delivery of an event whose original was not committed must be processed, not silently discarded.",
+      "severity": "block",
+      "applies_to": [
+        "duplicate_event_pipeline.py",
+        "process_events"
+      ],
+      "check_type": "functional",
+      "test_function": "test_retry_of_uncommitted_is_processed",
+      "test_file": "tests/test_duplicate_pipeline.py",
+      "rationale": "Silent data loss in event pipelines causes downstream inconsistency. Retries exist precisely to handle delivery failures \u2014 dropping them defeats the purpose."
+    }
+  ],
+  "context_summary": {
+    "archival_hits": 1,
+    "recall_hits": 2,
+    "rag_chunks": 5,
+    "patch_patterns": 1,
+    "constraints": 1,
+    "has_hypothesis": true,
+    "token_estimate": 1619
+  }
+}

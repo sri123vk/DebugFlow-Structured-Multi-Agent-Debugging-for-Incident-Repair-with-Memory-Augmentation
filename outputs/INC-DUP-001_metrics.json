@@ -1,0 +1,24 @@
+{
+  "incident_id": "INC-DUP-001",
+  "expected_root_cause_file": "bugs/duplicate_event_pipeline.py",
+  "root_cause_file_retrieved": true,
+  "num_rag_chunks": 5,
+  "num_graph_callers": 2,
+  "num_graph_callees": 5,
+  "num_tests": 1,
+  "num_constraints": 1,
+  "num_recall_hits": 2,
+  "num_archival_hits": 1,
+  "num_patch_patterns": 1,
+  "retrieved_files": [
+    "PipelineResult",
+    "add",
+    "append",
+    "bugs/duplicate_event_pipeline.py",
+    "bugs/duplicate_event_pipeline_fixed.py",
+    "field",
+    "set",
+    "tests/test_duplicate_pipeline.py",
+    "verifier.py"
+  ]
+}

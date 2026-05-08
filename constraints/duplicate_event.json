@@ -1,0 +1,12 @@
+[
+  {
+    "constraint_id": "no_drop_valid_repeated_events",
+    "description": "Do not drop valid repeated events. A retry delivery of an event whose original was not committed must be processed, not silently discarded.",
+    "severity": "block",
+    "applies_to": ["duplicate_event_pipeline.py", "process_events"],
+    "check_type": "functional",
+    "test_function": "test_retry_of_uncommitted_is_processed",
+    "test_file": "tests/test_duplicate_pipeline.py",
+    "rationale": "Silent data loss in event pipelines causes downstream inconsistency. Retries exist precisely to handle delivery failures — dropping them defeats the purpose."
+  }
+]

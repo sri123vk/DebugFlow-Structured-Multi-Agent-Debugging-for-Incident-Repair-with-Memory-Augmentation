@@ -1,0 +1,297 @@
+{
+  "incident_id": "INC-BQ-002",
+  "incident": {
+    "incident_id": "INC-BQ-002",
+    "title": "BigQuery cost spike \u2014 full table scan missing partition filter",
+    "severity": "P2",
+    "service": "OrderAnalytics",
+    "error_class": "CostConstraintViolation",
+    "source": "gcp_billing_alert",
+    "timestamp": "2024-03-16T09:30:00Z",
+    "stack_trace": "GCP Billing Alert: BigQuery spend exceeded $500 threshold\n  Job: order_analytics_query_20240316\n  Bytes billed: 193,273,528,321,024 (180 TB)\n  at bq_cost_query.build_order_query (line 52)\n  No partition filter applied \u2014 full table scan",
+    "symptoms": [
+      "BigQuery cost spike",
+      "full table scan",
+      "missing partition filter",
+      "order_date",
+      "build_order_query",
+      "bq_cost_query"
+    ],
+    "affected_file": "bugs/bq_cost_query.py",
+    "affected_function": "build_order_query",
+    "domain_constraint_ids": [
+      "require_partition_filter",
+      "scanned_bytes_below_threshold"
+    ],
+    "metrics": {
+      "bytes_billed": 193273528321024,
+      "estimated_cost_usd": 966.37,
+      "table_size_tb": 180
+    }
+  },
+  "working_context": {
+    "incident_id": "INC-BQ-002",
+    "incident_title": "BigQuery cost spike \u2014 full table scan missing partition filter",
+    "severity": "P2",
+    "active_hypothesis": {
+      "description": "Based on past incident 'BigQuery full table scan \u2014 missing partition filter on order_date': build_order_query accepts start_date and end_date parameters but never uses them in the WHERE clause. The query filters only on status, causing BigQuery to scan the full 180 TB table.",
+      "confidence": 0.84,
+      "status": "active",
+      "evidence_for": [
+        "Archival match: arc-bq-001 (score=0.93)",
+        "Same error class: CostConstraintViolation"
+      ],
+      "ruled_out_reason": null,
+      "created_at": "2026-05-08T16:58:26.196604"
+    },
+    "files_under_inspection": [],
+    "has_patch": false,
+    "patch_preview": null,
+    "test_results": null,
+    "next_action": "triage",
+    "hypothesis_trail": [
+      {
+        "description": "Based on past incident 'BigQuery full table scan \u2014 missing partition filter on order_date': build_order_query accepts start_date and end_date parameters but never uses them in the WHERE clause. The query filters only on status, causing BigQuery to scan the full 180 TB table.",
+        "confidence": 0.84,
+        "status": "active",
+        "evidence_for": [
+          "Archival match: arc-bq-001 (score=0.93)",
+          "Same error class: CostConstraintViolation"
+        ],
+        "ruled_out_reason": null,
+        "created_at": "2026-05-08T16:58:26.196604"
+      }
+    ],
+    "ruled_out_count": 0,
+    "turn_count": 0,
+    "token_estimate": 0
+  },
+  "recall_hits": [
+    {
+      "entry_id": "20260507160200202235",
+      "incident_id": "INC-BQ-002",
+      "agent": "context_builder",
+      "content": "Context built for INC-BQ-002. Archival hits: 1. RAG chunks: 5. Graph: callers=['verifier.py', 'tests/test_bq_cost_query.py'], tests=['tests/test_bq_cost_query.py']. Initial hypothesis: Based on past incident 'BigQuery full table scan \u2014 missing partition filter on order_date': build_order_query accepts st",
+      "tags": [
+        "context_built",
+        "initial"
+      ],
+      "timestamp": "2026-05-07T16:02:00.202228",
+      "score": 0.643
+    }
+  ],
+  "archival_hits": [
+    {
+      "record_id": "arc-bq-001",
+      "record_type": "incident",
+      "title": "BigQuery full table scan \u2014 missing partition filter on order_date",
+      "symptoms": [
+        "BigQuery cost spike",
+        "full table scan",
+        "partition filter",
+        "order_date",
+        "build_order_query",
+        "bytes billed",
+        "bq_cost",
+        "scanned bytes",
+        "CostConstraintViolation"
+      ],
+      "root_cause": "build_order_query accepts start_date and end_date parameters but never uses them in the WHERE clause. The query filters only on status, causing BigQuery to scan the full 180 TB table.",
+      "fix_pattern": "Add WHERE order_date BETWEEN start_date AND end_date before the status filter. Provide safe defaults (last 7 days) so the partition filter is always applied even when no dates are passed.",
+      "files_changed": [
+        "bugs/bq_cost_query.py"
+      ],
+      "patch_diff": null,
+      "tests_passed": [
+        "test_partition_filter_present",
+        "test_cost_constraint_passes",
+        "test_default_date_range_also_filtered",
+        "test_cost_is_low"
+      ],
+      "confidence": 0.95,
+      "incident_id": "INC-BQ-PREV-001",
+      "version": 1,
+      "deprecated_by": null,
+      "created_at": "2026-05-07T16:02:00.004874",
+      "score": 0.929
+    }
+  ],
+  "patch_patterns": [
+    {
+      "record_id": "arc-bq-002",
+      "record_type": "patch_pattern",
+      "title": "BigQuery partition filter pattern \u2014 always apply date range",
+      "symptoms": [
+        "BigQuery",
+        "partition",
+        "order_date",
+        "full scan",
+        "cost",
+        "bytes",
+        "WHERE clause"
+      ],
+      "root_cause": "Query parameters passed to a function are not propagated into the SQL WHERE clause, resulting in no partition pruning.",
+      "fix_pattern": "\n# Before (broken):\ndef build_order_query(status, start_date=None, end_date=None):\n    return f\"\"\"SELECT ... FROM orders WHERE status = '{status}'\"\"\".strip()\n    # start_date and end_date are IGNORED\n\n# After (fixed):\ndef build_order_query(status, start_date=None, end_date=None):\n    start = start_date or \"DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)\"\n    end   = end_date   or \"CURRENT_DATE()\"\n    return f\"\"\"\n    SELECT ... FROM orders\n    WHERE order_date BETWEEN {start} AND {end}\n      AND status = '{status}'\n    \"\"\".strip()\n",
+      "files_changed": [],
+      "patch_diff": null,
+      "tests_passed": [],
+      "confidence": 0.99,
+      "incident_id": null,
+      "version": 1,
+      "deprecated_by": null,
+      "created_at": "2026-05-07T16:02:00.004876",
+      "score": 0.571
+    }
+  ],
+  "file_history": [
+    {
+      "record_id": "arc-bq-001",
+      "record_type": "incident",
+      "title": "BigQuery full table scan \u2014 missing partition filter on order_date",
+      "symptoms": [
+        "BigQuery cost spike",
+        "full table scan",
+        "partition filter",
+        "order_date",
+        "build_order_query",
+        "bytes billed",
+        "bq_cost",
+        "scanned bytes",
+        "CostConstraintViolation"
+      ],
+      "root_cause": "build_order_query accepts start_date and end_date parameters but never uses them in the WHERE clause. The query filters only on status, causing BigQuery to scan the full 180 TB table.",
+      "fix_pattern": "Add WHERE order_date BETWEEN start_date AND end_date before the status filter. Provide safe defaults (last 7 days) so the partition filter is always applied even when no dates are passed.",
+      "files_changed": [
+        "bugs/bq_cost_query.py"
+      ],
+      "patch_diff": null,
+      "tests_passed": [
+        "test_partition_filter_present",
+        "test_cost_constraint_passes",
+        "test_default_date_range_also_filtered",
+        "test_cost_is_low"
+      ],
+      "confidence": 0.95,
+      "incident_id": "INC-BQ-PREV-001",
+      "version": 1,
+      "deprecated_by": null,
+      "created_at": "2026-05-07T16:02:00.004874"
+    }
+  ],
+  "code_graph": {
+    "error_site": "build_order_query",
+    "error_file": "bugs/bq_cost_query.py",
+    "own_functions": [
+      "build_order_query",
+      "estimate_scanned_bytes",
+      "estimate_cost_usd",
+      "check_cost_constraint"
+    ],
+    "callers": [
+      "verifier.py",
+      "tests/test_bq_cost_query.py"
+    ],
+    "callees": [
+      "lower",
+      "estimate_scanned_bytes",
+      "round",
+      "int",
+      "estimate_cost_usd",
+      "strip"
+    ],
+    "covering_tests": [
+      "tests/test_bq_cost_query.py"
+    ],
+    "imports": [
+      "__future__.annotations",
+      "annotations"
+    ],
+    "neighbour_files": [
+      "context/archival_storage.py",
+      "bugs/bq_cost_query_fixed.py",
+      "context/code_graph.py",
+      "context/builder.py",
+      "context/working_context.py"
+    ],
+    "change_hints": [
+      "commit a3f9: removed partition filter default (2h ago)"
+    ],
+    "error_function_source": "def build_order_query(\n    status: str,\n    start_date: str | None = None,\n    end_date:   str | None = None,\n) -> str:\n    \"\"\"\n    Build a SQL query to fetch orders by status.\n\n    BUG: partition filter is never applied even when start_date /\n    end_date are provided. The WHERE clause only filters on status,\n    causing a full table scan every time.\n    \"\"\"\n    # BUG: ignores start_date and end_date entirely\n    query = f\"\"\"\nSELECT\n    order_id,\n    customer_id,\n    order_date,\n    status,\n    total_amount\nFROM\n    `project.dataset.orders`\nWHERE\n    status = '{status}'\n\"\"\"\n    return query.strip()"
+  },
+  "graph_summary": {
+    "total_files": 13,
+    "total_functions": 85,
+    "total_call_edges": 230,
+    "test_files": 2
+  },
+  "rag_chunks": [
+    {
+      "file": "tests/test_bq_cost_query.py",
+      "function": "test_estimated_cost_is_high",
+      "code": "    def test_estimated_cost_is_high(self):\n        \"\"\"Full table scan on 180 TB table is very expensive.\"\"\"\n        from bugs.bq_cost_query import build_order_query, estimate_scanned_bytes, estimate_cost_usd\n        query   = build_order_query(\"COMPLETED\")\n        scanned = estimate_scanned_bytes(query)\n        cost    = estimate_cost_usd(scanned)\n        assert cost > 100, f\"Expected cost > $100, got ${cost}\"",
+      "score": 1.8753
+    },
+    {
+      "file": "tests/test_bq_cost_query.py",
+      "function": "test_status_filter_preserved",
+      "code": "    def test_status_filter_preserved(self):\n        \"\"\"Partition filter must not remove the status filter.\"\"\"\n        from bugs.bq_cost_query_fixed import build_order_query\n\n        query = build_order_query(\"REFUNDED\", \"2024-01-01\", \"2024-01-31\")\n        assert \"REFUNDED\" in query\n        assert \"order_date\" in query.lower()",
+      "score": 1.0814
+    },
+    {
+      "file": "tests/test_bq_cost_query.py",
+      "function": "test_partition_filter_present",
+      "code": "    def test_partition_filter_present(self):\n        \"\"\"Fixed query must include order_date partition filter.\"\"\"\n        from bugs.bq_cost_query_fixed import build_order_query\n\n        query = build_order_query(\"COMPLETED\", \"2024-01-01\", \"2024-01-31\")\n        assert \"order_date\" in query.lower(), (\n            \"Fixed query must include order_date partition filter\"\n        )\n        assert \"between\" in query.lower() or \">=\" in query.lower()",
+      "score": 1.0686
+    },
+    {
+      "file": "bugs/bq_cost_query.py",
+      "function": "estimate_scanned_bytes",
+      "code": "def estimate_scanned_bytes(query: str) -> int:\n    \"\"\"\n    Estimate bytes scanned by inspecting the query for partition filters.\n    Returns full table size if no partition filter is found.\n    \"\"\"\n    query_lower = query.lower()\n    has_partition_filter = (\n        \"order_date\" in query_lower\n        and (\"between\" in query_lower or \">=\" in query_lower or \"<=\" in query_lower)\n    )\n    if has_partition_filter:\n        # Rough estimate: ~10 days of data for a typical date range\n        return int(TABLE_SIZE_TB * BYTES_PER_GB * 1024 * 10 / 365)\n    else:\n        # Full table scan\n        return int(TABLE_SIZE_TB * BYTES_PER_GB * 1024)",
+      "score": 0.9756
+    },
+    {
+      "file": "tests/test_bq_cost_query.py",
+      "function": "test_query_missing_partition_filter",
+      "code": "    def test_query_missing_partition_filter(self):\n        \"\"\"Buggy query has no partition filter \u2014 cost constraint violated.\"\"\"\n        from bugs.bq_cost_query import build_order_query, check_cost_constraint\n\n        query  = build_order_query(\"COMPLETED\", \"2024-01-01\", \"2024-01-31\")\n        result = check_cost_constraint(query)\n\n        # The bug: order_date appears in SELECT but NOT in WHERE as a filter\n        # Check that there's no WHERE filter on order_date (no BETWEEN / >= etc.)\n        import re\n        has_where_filter = bool(re.search(\n            r\"where.*order_date.*(between|>=|<=|>|<)\", query.lower(), re.DOTALL\n        ))\n        assert not has_where_filter, (\n            \"Buggy version should NOT filter on order_date in WHERE clause\"\n        )\n        assert result[\"passed\"] is False, \"Cost constraint should fail on buggy query\"\n        assert result[\"scanned_gb\"] > 10",
+      "score": 0.7929
+    }
+  ],
+  "domain_constraints": [
+    {
+      "constraint_id": "require_partition_filter",
+      "description": "All queries against partitioned tables must include a partition filter on the partition column (order_date). Queries without a partition filter will be rejected.",
+      "severity": "block",
+      "applies_to": [
+        "bq_cost_query.py",
+        "build_order_query"
+      ],
+      "check_type": "static",
+      "check_pattern": "order_date.*(between|>=|<=|>|<)",
+      "rationale": "Unfiltered queries on 180 TB table cost ~$900 per execution. Partition filters reduce scan to <10 GB (<$0.05)."
+    },
+    {
+      "constraint_id": "scanned_bytes_below_threshold",
+      "description": "Estimated bytes scanned per query must be below 10 GB (10,737,418,240 bytes). Queries exceeding this threshold indicate missing or insufficient partition pruning.",
+      "severity": "block",
+      "applies_to": [
+        "bq_cost_query.py",
+        "build_order_query"
+      ],
+      "check_type": "cost",
+      "threshold_bytes": 10737418240,
+      "threshold_gb": 10,
+      "max_cost_usd": 0.05,
+      "check_function": "check_cost_constraint",
+      "rationale": "Cost governance policy: single analytical query must not exceed $0.05."
+    }
+  ],
+  "context_summary": {
+    "archival_hits": 1,
+    "recall_hits": 1,
+    "rag_chunks": 5,
+    "patch_patterns": 1,
+    "constraints": 2,
+    "has_hypothesis": true,
+    "token_estimate": 1475
+  }
+}

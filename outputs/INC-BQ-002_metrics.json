@@ -1,0 +1,24 @@
+{
+  "incident_id": "INC-BQ-002",
+  "expected_root_cause_file": "bugs/bq_cost_query.py",
+  "root_cause_file_retrieved": true,
+  "num_rag_chunks": 5,
+  "num_graph_callers": 2,
+  "num_graph_callees": 6,
+  "num_tests": 1,
+  "num_constraints": 2,
+  "num_recall_hits": 2,
+  "num_archival_hits": 1,
+  "num_patch_patterns": 1,
+  "retrieved_files": [
+    "bugs/bq_cost_query.py",
+    "estimate_cost_usd",
+    "estimate_scanned_bytes",
+    "int",
+    "lower",
+    "round",
+    "strip",
+    "tests/test_bq_cost_query.py",
+    "verifier.py"
+  ]
+}

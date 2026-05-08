@@ -1,0 +1,24 @@
+{
+  "incident_id": "INC-DUP-001",
+  "title": "Duplicate event pipeline silently dropping valid retries",
+  "severity": "P1",
+  "service": "EventPipeline",
+  "error_class": "SilentDataLoss",
+  "source": "datadog",
+  "timestamp": "2024-03-15T03:14:00Z",
+  "stack_trace": "WARNING: Event evt-002 dropped as duplicate\n  at duplicate_event_pipeline.process_events (line 38)\n  Retry event silently discarded — original may not have been committed",
+  "symptoms": [
+    "retry events being dropped",
+    "duplicate event pipeline",
+    "silent data loss",
+    "event deduplication",
+    "process_events"
+  ],
+  "affected_file": "bugs/duplicate_event_pipeline.py",
+  "affected_function": "process_events",
+  "domain_constraint_ids": ["no_drop_valid_repeated_events"],
+  "metrics": {
+    "events_dropped_per_hour": 142,
+    "estimated_data_loss_pct": 8.3
+  }
+}

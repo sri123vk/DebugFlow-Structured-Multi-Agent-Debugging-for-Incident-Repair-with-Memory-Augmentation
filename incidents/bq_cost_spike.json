@@ -1,0 +1,26 @@
+{
+  "incident_id": "INC-BQ-002",
+  "title": "BigQuery cost spike — full table scan missing partition filter",
+  "severity": "P2",
+  "service": "OrderAnalytics",
+  "error_class": "CostConstraintViolation",
+  "source": "gcp_billing_alert",
+  "timestamp": "2024-03-16T09:30:00Z",
+  "stack_trace": "GCP Billing Alert: BigQuery spend exceeded $500 threshold\n  Job: order_analytics_query_20240316\n  Bytes billed: 193,273,528,321,024 (180 TB)\n  at bq_cost_query.build_order_query (line 52)\n  No partition filter applied — full table scan",
+  "symptoms": [
+    "BigQuery cost spike",
+    "full table scan",
+    "missing partition filter",
+    "order_date",
+    "build_order_query",
+    "bq_cost_query"
+  ],
+  "affected_file": "bugs/bq_cost_query.py",
+  "affected_function": "build_order_query",
+  "domain_constraint_ids": ["require_partition_filter", "scanned_bytes_below_threshold"],
+  "metrics": {
+    "bytes_billed": 193273528321024,
+    "estimated_cost_usd": 966.37,
+    "table_size_tb": 180
+  }
+}

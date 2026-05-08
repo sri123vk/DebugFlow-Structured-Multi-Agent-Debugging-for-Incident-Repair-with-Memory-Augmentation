@@ -1,0 +1,111 @@
+[
+  {
+    "record_id": "arc-dup-001",
+    "record_type": "incident",
+    "title": "Event pipeline dropping retry deliveries silently",
+    "symptoms": [
+      "silent data loss",
+      "event dropped",
+      "retry",
+      "duplicate",
+      "process_events",
+      "deduplication",
+      "set seen_ids"
+    ],
+    "root_cause": "process_events uses a plain set() for deduplication keyed only on event_id. Retry deliveries (retry=True) with the same event_id are silently dropped even when the original was never committed.",
+    "fix_pattern": "Check the retry flag before deduplicating. Only drop an event if it has no retry flag AND its event_id is already in committed_ids. Use: if event.event_id in committed_ids and not event.retry",
+    "files_changed": [
+      "bugs/duplicate_event_pipeline.py"
+    ],
+    "patch_diff": null,
+    "tests_passed": [
+      "test_retry_of_uncommitted_is_processed",
+      "test_mixed_stream",
+      "test_true_duplicate_is_dropped"
+    ],
+    "confidence": 0.97,
+    "incident_id": "INC-DUP-PREV-001",
+    "version": 1,
+    "deprecated_by": null,
+    "created_at": "2026-05-07T16:02:00.004645"
+  },
+  {
+    "record_id": "arc-dup-002",
+    "record_type": "patch_pattern",
+    "title": "Retry-aware event deduplication pattern",
+    "symptoms": [
+      "retry",
+      "duplicate",
+      "event_id",
+      "dedup",
+      "set"
+    ],
+    "root_cause": "Using set() keyed on event_id alone conflates true duplicates with retries of uncommitted events.",
+    "fix_pattern": "\n# Before (broken):\nseen_ids: set[str] = set()\nif event.event_id in seen_ids:\n    result.dropped.append(event)  # drops valid retries too\n\n# After (fixed):\ncommitted_ids: set[str] = set()\nif event.event_id in committed_ids and not event.retry:\n    result.dropped.append(event)  # only drops true duplicates\nelse:\n    result.processed.append(event)\n    committed_ids.add(event.event_id)\n",
+    "files_changed": [],
+    "patch_diff": null,
+    "tests_passed": [],
+    "confidence": 0.99,
+    "incident_id": null,
+    "version": 1,
+    "deprecated_by": null,
+    "created_at": "2026-05-07T16:02:00.004871"
+  },
+  {
+    "record_id": "arc-bq-001",
+    "record_type": "incident",
+    "title": "BigQuery full table scan \u2014 missing partition filter on order_date",
+    "symptoms": [
+      "BigQuery cost spike",
+      "full table scan",
+      "partition filter",
+      "order_date",
+      "build_order_query",
+      "bytes billed",
+      "bq_cost",
+      "scanned bytes",
+      "CostConstraintViolation"
+    ],
+    "root_cause": "build_order_query accepts start_date and end_date parameters but never uses them in the WHERE clause. The query filters only on status, causing BigQuery to scan the full 180 TB table.",
+    "fix_pattern": "Add WHERE order_date BETWEEN start_date AND end_date before the status filter. Provide safe defaults (last 7 days) so the partition filter is always applied even when no dates are passed.",
+    "files_changed": [
+      "bugs/bq_cost_query.py"
+    ],
+    "patch_diff": null,
+    "tests_passed": [
+      "test_partition_filter_present",
+      "test_cost_constraint_passes",
+      "test_default_date_range_also_filtered",
+      "test_cost_is_low"
+    ],
+    "confidence": 0.95,
+    "incident_id": "INC-BQ-PREV-001",
+    "version": 1,
+    "deprecated_by": null,
+    "created_at": "2026-05-07T16:02:00.004874"
+  },
+  {
+    "record_id": "arc-bq-002",
+    "record_type": "patch_pattern",
+    "title": "BigQuery partition filter pattern \u2014 always apply date range",
+    "symptoms": [
+      "BigQuery",
+      "partition",
+      "order_date",
+      "full scan",
+      "cost",
+      "bytes",
+      "WHERE clause"
+    ],
+    "root_cause": "Query parameters passed to a function are not propagated into the SQL WHERE clause, resulting in no partition pruning.",
+    "fix_pattern": "\n# Before (broken):\ndef build_order_query(status, start_date=None, end_date=None):\n    return f\"\"\"SELECT ... FROM orders WHERE status = '{status}'\"\"\".strip()\n    # start_date and end_date are IGNORED\n\n# After (fixed):\ndef build_order_query(status, start_date=None, end_date=None):\n    start = start_date or \"DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)\"\n    end   = end_date   or \"CURRENT_DATE()\"\n    return f\"\"\"\n    SELECT ... FROM orders\n    WHERE order_date BETWEEN {start} AND {end}\n      AND status = '{status}'\n    \"\"\".strip()\n",
+    "files_changed": [],
+    "patch_diff": null,
+    "tests_passed": [],
+    "confidence": 0.99,
+    "incident_id": null,
+    "version": 1,
+    "deprecated_by": null,
+    "created_at": "2026-05-07T16:02:00.004876"
+  }
+]

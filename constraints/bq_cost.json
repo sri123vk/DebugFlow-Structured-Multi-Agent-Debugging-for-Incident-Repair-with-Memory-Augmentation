@@ -1,0 +1,23 @@
+[
+  {
+    "constraint_id": "require_partition_filter",
+    "description": "All queries against partitioned tables must include a partition filter on the partition column (order_date). Queries without a partition filter will be rejected.",
+    "severity": "block",
+    "applies_to": ["bq_cost_query.py", "build_order_query"],
+    "check_type": "static",
+    "check_pattern": "order_date.*(between|>=|<=|>|<)",
+    "rationale": "Unfiltered queries on 180 TB table cost ~$900 per execution. Partition filters reduce scan to <10 GB (<$0.05)."
+  },
+  {
+    "constraint_id": "scanned_bytes_below_threshold",
+    "description": "Estimated bytes scanned per query must be below 10 GB (10,737,418,240 bytes). Queries exceeding this threshold indicate missing or insufficient partition pruning.",
+    "severity": "block",
+    "applies_to": ["bq_cost_query.py", "build_order_query"],
+    "check_type": "cost",
+    "threshold_bytes": 10737418240,
+    "threshold_gb": 10,
+    "max_cost_usd": 0.05,
+    "check_function": "check_cost_constraint",
+    "rationale": "Cost governance policy: single analytical query must not exceed $0.05."
+  }
+]

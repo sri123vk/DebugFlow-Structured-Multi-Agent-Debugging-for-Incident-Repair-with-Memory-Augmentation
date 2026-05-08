@@ -1,0 +1,68 @@
+[
+  {
+    "entry_id": "20260507160200101755",
+    "incident_id": "INC-DUP-001",
+    "agent": "context_builder",
+    "content": "Context built for INC-DUP-001. Archival hits: 1. RAG chunks: 5. Graph: callers=['verifier.py', 'tests/test_duplicate_pipeline.py'], tests=['tests/test_duplicate_pipeline.py']. Initial hypothesis: Based on past incident 'Event pipeline dropping retry deliveries silently': process_events uses a plain set() for dedupl",
+    "tags": [
+      "context_built",
+      "initial"
+    ],
+    "timestamp": "2026-05-07T16:02:00.101748"
+  },
+  {
+    "entry_id": "20260508165526379956",
+    "incident_id": "INC-DUP-001",
+    "agent": "context_builder",
+    "content": "Context built for INC-DUP-001. Archival hits: 1. RAG chunks: 5. Graph: callers=['verifier.py', 'tests/test_duplicate_pipeline.py'], tests=['tests/test_duplicate_pipeline.py']. Initial hypothesis: Based on past incident 'Event pipeline dropping retry deliveries silently': process_events uses a plain set() for dedupl",
+    "tags": [
+      "context_built",
+      "initial"
+    ],
+    "timestamp": "2026-05-08T16:55:26.379948"
+  },
+  {
+    "entry_id": "20260508170147889885",
+    "incident_id": "INC-DUP-001",
+    "agent": "context_builder",
+    "content": "Context built for INC-DUP-001. Archival hits: 1. RAG chunks: 5. Graph: callers=['verifier.py', 'tests/test_duplicate_pipeline.py'], tests=['tests/test_duplicate_pipeline.py']. Initial hypothesis: Based on past incident 'Event pipeline dropping retry deliveries silently': process_events uses a plain set() for dedupl",
+    "tags": [
+      "context_built",
+      "initial"
+    ],
+    "timestamp": "2026-05-08T17:01:47.889880"
+  },
+  {
+    "entry_id": "20260508170404257305",
+    "incident_id": "INC-DUP-001",
+    "agent": "context_builder",
+    "content": "Context built for INC-DUP-001. Archival hits: 1. RAG chunks: 5. Graph: callers=['verifier.py', 'tests/test_duplicate_pipeline.py'], tests=['tests/test_duplicate_pipeline.py']. Initial hypothesis: Based on past incident 'Event pipeline dropping retry deliveries silently': process_events uses a plain set() for dedupl",
+    "tags": [
+      "context_built",
+      "initial"
+    ],
+    "timestamp": "2026-05-08T17:04:04.257300"
+  },
+  {
+    "entry_id": "20260508170404373028",
+    "incident_id": "INC-DUP-001",
+    "agent": "context_builder",
+    "content": "Context built for INC-DUP-001. Archival hits: 1. RAG chunks: 5. Graph: callers=['verifier.py', 'tests/test_duplicate_pipeline.py'], tests=['tests/test_duplicate_pipeline.py']. Initial hypothesis: Based on past incident 'Event pipeline dropping retry deliveries silently': process_events uses a plain set() for dedupl",
+    "tags": [
+      "context_built",
+      "initial"
+    ],
+    "timestamp": "2026-05-08T17:04:04.373023"
+  },
+  {
+    "entry_id": "20260508170404488994",
+    "incident_id": "INC-DUP-001",
+    "agent": "context_builder",
+    "content": "Context built for INC-DUP-001. Archival hits: 1. RAG chunks: 5. Graph: callers=['verifier.py', 'tests/test_duplicate_pipeline.py'], tests=['tests/test_duplicate_pipeline.py']. Initial hypothesis: Based on past incident 'Event pipeline dropping retry deliveries silently': process_events uses a plain set() for dedupl",
+    "tags": [
+      "context_built",
+      "initial"
+    ],
+    "timestamp": "2026-05-08T17:04:04.488989"
+  }
+]

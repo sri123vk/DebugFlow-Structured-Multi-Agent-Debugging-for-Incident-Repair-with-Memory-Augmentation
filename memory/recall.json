@@ -1,0 +1,9 @@
+[
+  {
+    "incident_id": "TEST-001",
+    "description": "dummy retry bug",
+    "patch_summary": "added idempotency validation",
+    "tests_passed": 3,
+    "constraint_violations": []
+  }
+]

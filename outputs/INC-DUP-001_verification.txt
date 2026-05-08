@@ -1,0 +1,40 @@
+{
+  "incident_id": "INC-DUP-001",
+  "passed": true,
+  "blockers": [],
+  "pytest": {
+    "passed": true,
+    "return_code": 0,
+    "tests_passed": [
+      "tests/test_bq_cost_query.py::TestBuggyQuery::test_query_missing_partition_filter",
+      "tests/test_bq_cost_query.py::TestBuggyQuery::test_estimated_cost_is_high",
+      "tests/test_bq_cost_query.py::TestFixedQuery::test_partition_filter_present",
+      "tests/test_bq_cost_query.py::TestFixedQuery::test_cost_constraint_passes",
+      "tests/test_bq_cost_query.py::TestFixedQuery::test_default_date_range_also_filtered",
+      "tests/test_bq_cost_query.py::TestFixedQuery::test_cost_is_low",
+      "tests/test_bq_cost_query.py::TestFixedQuery::test_status_filter_preserved",
+      "tests/test_duplicate_pipeline.py::TestBuggyPipeline::test_normal_dedup_passes_in_buggy",
+      "tests/test_duplicate_pipeline.py::TestBuggyPipeline::test_retry_dropped_in_buggy",
+      "tests/test_duplicate_pipeline.py::TestFixedPipeline::test_true_duplicate_is_dropped",
+      "tests/test_duplicate_pipeline.py::TestFixedPipeline::test_retry_of_uncommitted_is_processed",
+      "tests/test_duplicate_pipeline.py::TestFixedPipeline::test_mixed_stream",
+      "tests/test_duplicate_pipeline.py::TestFixedPipeline::test_empty_stream",
+      "tests/test_duplicate_pipeline.py::TestFixedPipeline::test_all_unique"
+    ],
+    "tests_failed": [],
+    "n_passed": 14,
+    "n_failed": 0,
+    "stdout": ": {'Python': '3.13.12', 'Platform': 'macOS-15.7.3-arm64-arm-64bit-Mach-O', 'Packages': {'pytest': '8.3.5', 'pluggy': '1.6.0'}, 'Plugins': {'json-report': '1.5.0', 'metadata': '3.1.1', 'typeguard': '4.5.1', 'langsmith': '0.7.30', 'anyio': '4.13.0'}, 'JAVA_HOME': '/opt/homebrew/Cellar/openjdk@17/17.0.18/libexec/openjdk.jdk/Contents/Home'}\nrootdir: /Users/srimathiravisankar/Documents/aiagents\nplugins: json-report-1.5.0, metadata-3.1.1, typeguard-4.5.1, langsmith-0.7.30, anyio-4.13.0\ncollecting ... collected 14 items\n\ntests/test_bq_cost_query.py::TestBuggyQuery::test_query_missing_partition_filter PASSED [  7%]\ntests/test_bq_cost_query.py::TestBuggyQuery::test_estimated_cost_is_high PASSED [ 14%]\ntests/test_bq_cost_query.py::TestFixedQuery::test_partition_filter_present PASSED [ 21%]\ntests/test_bq_cost_query.py::TestFixedQuery::test_cost_constraint_passes PASSED [ 28%]\ntests/test_bq_cost_query.py::TestFixedQuery::test_default_date_range_also_filtered PASSED [ 35%]\ntests/test_bq_cost_query.py::TestFixedQuery::test_cost_is_low PASSED     [ 42%]\ntests/test_bq_cost_query.py::TestFixedQuery::test_status_filter_preserved PASSED [ 50%]\ntests/test_duplicate_pipeline.py::TestBuggyPipeline::test_normal_dedup_passes_in_buggy PASSED [ 57%]\ntests/test_duplicate_pipeline.py::TestBuggyPipeline::test_retry_dropped_in_buggy PASSED [ 64%]\ntests/test_duplicate_pipeline.py::TestFixedPipeline::test_true_duplicate_is_dropped PASSED [ 71%]\ntests/test_duplicate_pipeline.py::TestFixedPipeline::test_retry_of_uncommitted_is_processed PASSED [ 78%]\ntests/test_duplicate_pipeline.py::TestFixedPipeline::test_mixed_stream PASSED [ 85%]\ntests/test_duplicate_pipeline.py::TestFixedPipeline::test_empty_stream PASSED [ 92%]\ntests/test_duplicate_pipeline.py::TestFixedPipeline::test_all_unique PASSED [100%]\n\n--------------------------------- JSON report ----------------------------------\nreport saved to: /tmp/pytest_report.json\n============================== 14 passed in 0.01s ==============================\n"
+  },
+  "domain_checks": [
+    {
+      "constraint_id": "no_drop_valid_repeated_events",
+      "passed": true,
+      "events_processed": 2,
+      "events_dropped": 0,
+      "violation": null
+    }
+  ],
+  "summary": "All checks passed"
+}
+
